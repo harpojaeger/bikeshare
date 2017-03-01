@@ -11,6 +11,20 @@ app.get('/favicon.ico', function(req, res) {
   res.send(null)
 })
 
+var regions = require('./regions')
+
+// Internal API endpoint for finding bikeshare near the origin.
+app.get('/find/origins', function(req, res) {
+  var addr = req.query.addr
+  res.send(addr)
+})
+
+// Internal API endpoint for finding bikeshare near the destination.
+app.get('/find/destinations', function(req, res) {
+  var addr = req.query.addr
+  res.send(addr)
+})
+
 app.get('*', function(req, res) {
   res.send('Hello world.')
 })
