@@ -10,7 +10,7 @@ var googleMapsClient = require('@google/maps').createClient({
 var geolib = require('geolib')
 
 // Set a local with the address, for either origin or destination
-router.get(['/origin','/destination'], function(req, res, next) {
+router.get('/', function(req, res, next) {
   async.waterfall([
     function(cb){
       if(req.query.addr) {
@@ -98,14 +98,48 @@ router.get(['/origin','/destination'], function(req, res, next) {
           waterfallCB(null, transformed)
         }
       })
+    },
+    function(stations, cb) {
+      function compareDistances(a, b) {
+        if (a.distance < b.distance) return -1
+        if (a.distance > b.distance) return 1
+        return 0
+      }
+      stations.sort(compareDistances)
+      var minBikes = req.query.minBikes || 0
+      var minDocks = req.query.minDocks || 0
+      async.filter(stations,
+        function(station, filterCB) {
+          filterCB(null, ((parseInt(station.nbBikes[0]) >= minBikes) && (parseInt(station.nbEmptyDocks[0]) >= minDocks)))
+        },
+        function(err, results) {
+          console.log('Found', results.length, 'stations matching criteria.')
+          cb(null, results)
+        }
+      )
     }
   ],
     function(err, results) {
       if(err) {
         console.log('Got an error')
-        res.status(err.code || 500).send(err)
+        res.status(err.code || 500).send(err.text)
       } else {
-        console.log('Computed distances for all stations.')
+        res.locals.stations = results
+        var stationList = '<ol>'
+        async.each(results,
+          function(station, cb) {
+            stationList += "<li>" + station.name + ': ' + station.nbBikes + ' bikes, ' + station.nbEmptyDocks + ' docks.</li>'
+            cb(null)
+          },
+          function(err){
+            if (err) {
+              res.send(err)
+            } else {
+              stationList +="</ol>"
+              res.send(stationList)
+            }
+          }
+        )
       }
     }
   )
