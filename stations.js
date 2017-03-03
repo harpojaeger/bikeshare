@@ -83,7 +83,6 @@ router.get(['/origin','/destination'], function(req, res, next) {
 
         if(distance) {
           retval.distance = distance
-          console.log(retval)
           mapCB(null, retval)
         } else {
           mapCB('Error calculating distance to station ' + retval.id[0])
@@ -92,14 +91,15 @@ router.get(['/origin','/destination'], function(req, res, next) {
       function(err, transformed) {
         if(err) {
           waterfallCB({
-            text: err,
+            text: 'Error calculating distances: ' + err,
             code: 500
           })
         } else {
           waterfallCB(null, transformed)
         }
       })
-    },
+    }
+  ],
     function(err, results) {
       if(err) {
         console.log('Got an error')
@@ -108,7 +108,7 @@ router.get(['/origin','/destination'], function(req, res, next) {
         console.log('Computed distances for all stations.')
       }
     }
-  ])
+  )
 })
 
 
