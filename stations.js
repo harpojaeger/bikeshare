@@ -117,6 +117,34 @@ router.get('/', function(req, res, next) {
           cb(null, results)
         }
       )
+    },
+    function(stations, cb) {
+      // Produce an array with the addresses of the 20 closest stations.
+      var nearbyStations = stations.slice(0,20)
+      var nearbyStationCoords = []
+      nearbyStations.forEach(function(station){
+        nearbyStationCoords.push(station.lat[0] + '|' + station.long[0])
+      })
+
+      // Need to make sure there's no significant difference between station list as origin and station list as destination (since this router processes both)
+      googleMapsClient.distanceMatrix({
+        mode: 'walking',
+        origins: [
+          req.query.addr
+        ],
+        destinations: [
+          nearbyStationCoords
+        ]
+      },
+      function(err, response){
+        if (err) {
+          console.dir (err)
+          cb(err)
+        } else {
+          console.dir(response.json.rows[0].elements)
+          cb(null,nearbyStations)
+        }
+      })
     }
   ],
     function(err, results) {
@@ -125,7 +153,7 @@ router.get('/', function(req, res, next) {
         res.status(err.code || 500).send(err.text)
       } else {
         var stationList = '<ol>\n'
-        async.each(results.slice(0,20),
+        async.each(results,
           function(station, cb) {
             stationList += "<li>" + station.name + ': ' + station.nbBikes + ' bikes, ' + station.nbEmptyDocks + ' docks.</li>\n'
             cb(null)
