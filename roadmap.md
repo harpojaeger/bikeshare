@@ -1,0 +1,2 @@
+--Create some Jasmine tests
+  --Test for version "2.0" on http://feeds.capitalbikeshare.com/stations/stations.xml

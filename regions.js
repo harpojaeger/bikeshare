@@ -10,7 +10,10 @@ module.exports = {
         'slug' : 'DC',
         'fullname' : 'Washington, DC',
         'apis' : {
-
+          'endpoint' : 'http://feeds.capitalbikeshare.com/stations/stations.xml',
+          'auth' : false,
+          'method' : 'GET',
+          'format' : 'XML'
         }
       }
     }
