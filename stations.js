@@ -124,11 +124,10 @@ router.get('/', function(req, res, next) {
         console.log('Got an error')
         res.status(err.code || 500).send(err.text)
       } else {
-        res.locals.stations = results
-        var stationList = '<ol>'
-        async.each(results,
+        var stationList = '<ol>\n'
+        async.each(results.slice(0,20),
           function(station, cb) {
-            stationList += "<li>" + station.name + ': ' + station.nbBikes + ' bikes, ' + station.nbEmptyDocks + ' docks.</li>'
+            stationList += "<li>" + station.name + ': ' + station.nbBikes + ' bikes, ' + station.nbEmptyDocks + ' docks.</li>\n'
             cb(null)
           },
           function(err){
