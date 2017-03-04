@@ -123,28 +123,36 @@ router.get('/', function(req, res, next) {
       var nearbyStations = stations.slice(0,20)
       var nearbyStationCoords = []
       nearbyStations.forEach(function(station){
-        nearbyStationCoords.push(station.lat[0] + '|' + station.long[0])
+        nearbyStationCoords.push(station.lat[0] + ',' + station.long[0])
       })
-
       // Need to make sure there's no significant difference between station list as origin and station list as destination (since this router processes both)
       googleMapsClient.distanceMatrix({
         mode: 'walking',
         origins: [
           req.query.addr
         ],
-        destinations: [
-          nearbyStationCoords
-        ]
+        destinations: nearbyStationCoords
       },
       function(err, response){
         if (err) {
           console.dir (err)
           cb(err)
         } else {
-          console.dir(response.json.rows[0].elements)
-          cb(null,nearbyStations)
+          for (i in response.json.rows[0].elements) {
+            nearbyStations[i].walkingDirections = response.json.rows[0].elements[i]
+          }
+          cb(null, nearbyStations)
         }
       })
+    },
+    function(stations, cb) {
+      function compareWalkingTime(a, b) {
+        if (a.walkingDirections.duration.value < b.walkingDirections.duration.value) return -1
+        if (a.walkingDirections.duration.value > b.walkingDirections.duration.value) return 1
+        return 0
+      }
+      stations.sort(compareWalkingTime)
+      cb(null, stations)
     }
   ],
     function(err, results) {
@@ -155,7 +163,7 @@ router.get('/', function(req, res, next) {
         var stationList = '<ol>\n'
         async.each(results,
           function(station, cb) {
-            stationList += "<li>" + station.name + ': ' + station.nbBikes + ' bikes, ' + station.nbEmptyDocks + ' docks.</li>\n'
+            stationList += "<li>" + station.name + ': ' + station.nbBikes + ' bikes, ' + station.nbEmptyDocks + ' docks (' + station.walkingDirections.duration.text + '/' + station.walkingDirections.distance.text + ').</li>\n'
             cb(null)
           },
           function(err){
