@@ -9,9 +9,9 @@ var googleMapsClient = require('@google/maps').createClient({
 });
 var geolib = require('geolib')
 
-// Set a local with the address, for either origin or destination
 router.get('/', function(req, res, next) {
   async.waterfall([
+    // Check to make sure an address was provided.
     function(cb){
       if(req.query.addr) {
         cb(null, req.query.addr)
@@ -22,12 +22,15 @@ router.get('/', function(req, res, next) {
         })
       }
     },
+    // Geocode the address and throw an error if it doesn't work
     function(queryAddr, cb) {
       googleMapsClient.geocode({
         address: queryAddr
       }, function(err, response){
         if(!err) {
-          cb(null,response.json.results[0])
+          // Store the geocoded address data in a local variable
+          res.locals.addressData = response.json.results[0]
+          cb(null)
         } else {
           cb({
             text: 'Error geocoding address: ' + err,
@@ -36,9 +39,8 @@ router.get('/', function(req, res, next) {
         }
       })
     },
-    function(results, cb){
-      res.locals.addressData = results
-      console.dir(res.locals.addressData)
+    // Fetch current bikeshare data
+    function(cb){
       request('http://feeds.capitalbikeshare.com/stations/stations.xml', function(error, response,body) {
         if (!error && response.statusCode == 200) {
           cb(null, body)
@@ -50,6 +52,7 @@ router.get('/', function(req, res, next) {
         }
       })
     },
+    // Parse the XML bikeshare data
     function(returnedXML, cb){
       xml.parseString(returnedXML, function(err, result) {
         if (err) {
@@ -62,13 +65,18 @@ router.get('/', function(req, res, next) {
         }
       })
     },
+    // Do a straight-line distance calculation to each station to create a subset of stations to actually get walking directions for.
     function(parsedXML, waterfallCB) {
       var stationList = parsedXML.stations.station
       console.log('Ready to process', stationList.length, 'stations.')
+      // I'm using 'mapCB' to distinguish the callback function inside async.map from waterfallCB, the callback in the top-level async.waterfall function.
       async.map(stationList, function(station, mapCB) {
         var retval = station
+        // Retrieve lat and long for the submitted address.
+        // The different naming conventions (lat/long vs. lat/lng) come from geolib and GMaps and are preserved for simplicity.
         var addressLat = res.locals.addressData.geometry.location.lat
         var addressLng = res.locals.addressData.geometry.location.lng
+        // Do the distance calculation
         var distance = geolib.getDistance(
           {
             latitude: addressLat,
@@ -82,14 +90,20 @@ router.get('/', function(req, res, next) {
         )
 
         if(distance) {
+          // Give the station a distance property.
           retval.distance = distance
+          // It worked: on to the next one.
           mapCB(null, retval)
         } else {
+          // Throw an error to the async.map callback
           mapCB('Error calculating distance to station ' + retval.id[0])
         }
       },
+
+      // This is mapCB
       function(err, transformed) {
         if(err) {
+          // So mapCB is basically a passthrough for waterfallCB
           waterfallCB({
             text: 'Error calculating distances: ' + err,
             code: 500
@@ -100,12 +114,14 @@ router.get('/', function(req, res, next) {
       })
     },
     function(stations, cb) {
+      // Sort stations by straightline distance
       function compareDistances(a, b) {
         if (a.distance < b.distance) return -1
         if (a.distance > b.distance) return 1
         return 0
       }
       stations.sort(compareDistances)
+      // What's the minimum number of bikes/docks needed?  This is so the /stations endpoint can be used to determine both origin and destination stations (assuming that walking directions are completely reversible).
       var minBikes = req.query.minBikes || 0
       var minDocks = req.query.minDocks || 0
       async.filter(stations,
@@ -119,13 +135,13 @@ router.get('/', function(req, res, next) {
       )
     },
     function(stations, cb) {
-      // Produce an array with the addresses of the 20 closest stations.
+      // Produce an array with the coordinates of the 20 closest stations.
       var nearbyStations = stations.slice(0,20)
       var nearbyStationCoords = []
       nearbyStations.forEach(function(station){
         nearbyStationCoords.push(station.lat[0] + ',' + station.long[0])
       })
-      // Need to make sure there's no significant difference between station list as origin and station list as destination (since this router processes both)
+      // Compute walking distance/time for all stations in the subset.
       googleMapsClient.distanceMatrix({
         mode: 'walking',
         origins: [
@@ -135,9 +151,9 @@ router.get('/', function(req, res, next) {
       },
       function(err, response){
         if (err) {
-          console.dir (err)
           cb(err)
         } else {
+          // Add the walking direction data to each station as the walkingDirections property.  There doesn't seem to be a neater way of doing this.  It'd be nice if you could pass a custom ID to the distanceMatrix call and have it returned.
           for (i in response.json.rows[0].elements) {
             nearbyStations[i].walkingDirections = response.json.rows[0].elements[i]
           }
@@ -146,6 +162,7 @@ router.get('/', function(req, res, next) {
       })
     },
     function(stations, cb) {
+      // Now that we have it, sort by walking time, rather than by straightline distance.
       function compareWalkingTime(a, b) {
         if (a.walkingDirections.duration.value < b.walkingDirections.duration.value) return -1
         if (a.walkingDirections.duration.value > b.walkingDirections.duration.value) return 1
@@ -171,7 +188,7 @@ router.get('/', function(req, res, next) {
               res.send(err)
             } else {
               stationList +="</ol>"
-              res.send(stationList)
+              res.send(results)
             }
           }
         )
