@@ -54,7 +54,9 @@ router.get('/', function(req, res, next) {
     },
     // Parse the XML bikeshare data
     function(returnedXML, cb){
-      xml.parseString(returnedXML, function(err, result) {
+      // Stop xml2js' abuse of arrays so it's easier to access properties
+      var parser = new xml.Parser({explicitArray : false })
+      parser.parseString(returnedXML, function(err, result) {
         if (err) {
           cb({
             text: 'XML parse error: '+ err,
@@ -83,8 +85,8 @@ router.get('/', function(req, res, next) {
             longitude: addressLng
           },
           {
-            latitude: station.lat[0],
-            longitude: station.long[0]
+            latitude: station.lat,
+            longitude: station.long
           },
           1, 1
         )
@@ -96,7 +98,7 @@ router.get('/', function(req, res, next) {
           mapCB(null, retval)
         } else {
           // Throw an error to the async.map callback
-          mapCB('Error calculating distance to station ' + retval.id[0])
+          mapCB('Error calculating distance to station ' + retval.id)
         }
       },
 
@@ -126,7 +128,7 @@ router.get('/', function(req, res, next) {
       var minDocks = req.query.minDocks || 0
       async.filter(stations,
         function(station, filterCB) {
-          filterCB(null, ((parseInt(station.nbBikes[0]) >= minBikes) && (parseInt(station.nbEmptyDocks[0]) >= minDocks)))
+          filterCB(null, ((parseInt(station.nbBikes) >= minBikes) && (parseInt(station.nbEmptyDocks) >= minDocks)))
         },
         function(err, results) {
           console.log('Found', results.length, 'stations matching criteria.')
@@ -139,7 +141,7 @@ router.get('/', function(req, res, next) {
       var nearbyStations = stations.slice(0,20)
       var nearbyStationCoords = []
       nearbyStations.forEach(function(station){
-        nearbyStationCoords.push(station.lat[0] + ',' + station.long[0])
+        nearbyStationCoords.push(station.lat + ',' + station.long)
       })
       // Compute walking distance/time for all stations in the subset.
       googleMapsClient.distanceMatrix({
