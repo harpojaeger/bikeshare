@@ -12,7 +12,7 @@ app.get('/favicon.ico', function(req, res) {
 })
 
 // Internal API endpoint for finding bikeshare locations
-var stations = require('./stations.js')
+var stations = require('./app/stations.js')
 app.use('/stations',stations)
 
 app.get('*', function(req, res) {

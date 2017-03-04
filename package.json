@@ -1,7 +1,7 @@
 {
   "name": "bikeshare",
   "version": "1.0.0",
-  "description": "",
+  "description": "Tell me closest origin and destination bikeshare stations with available bikes or docks, respectively, to my start and endpoint.",
   "main": "index.js",
   "dependencies": {
     "@google/maps": "^0.3.1",
@@ -9,12 +9,22 @@
     "body-parser": "^1.16.1",
     "express": "^4.14.1",
     "geolib": "^2.0.22",
+    "jasmine-node": "^1.14.5",
     "request": "^2.79.0",
     "xml2js": "^0.4.17"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jasmine"
   },
-  "author": "",
-  "license": "ISC"
+  "author": "Harpo Jaeger",
+  "license": "ISC",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/harpojaeger/bikeshare.git"
+  },
+  "bugs": {
+    "url": "https://github.com/harpojaeger/bikeshare/issues"
+  },
+  "homepage": "https://github.com/harpojaeger/bikeshare#readme"
 }
