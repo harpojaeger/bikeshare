@@ -1,4 +1,3 @@
-require('dotenv').config()
 var assert = require('assert')
 var xml = require('xml2js')
 var app = require ('../index')
