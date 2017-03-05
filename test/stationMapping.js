@@ -1,4 +1,3 @@
-require('dotenv').config()
 var assert = require('assert')
 var app = require ('../index')
 var supertest = require('supertest')(app)
