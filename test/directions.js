@@ -14,8 +14,8 @@ describe('The direction getter', function(){
   it('responds to queries with unresolvable addresses with 400', function(done) {
     supertest.get('/directions')
     .query({
-      startAddr: '1400 Shepherd St. NW, Washington DC',
-      endAddr: 'Lorem ipsum dolor sit amet'
+      originAddr: '1400 Shepherd St. NW, Washington DC',
+      destinationAddr: 'Lorem ipsum dolor sit amet'
     })
     .expect(400)
     .end(done)
