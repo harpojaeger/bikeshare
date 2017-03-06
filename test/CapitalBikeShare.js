@@ -11,6 +11,8 @@ describe('Capital Bikeshare', function() {
   })
 
   describe('XML', function() {
+    this.timeout(5000)
+    this.slow(4000)
     it('returns 200', function(done) {
       supertest
       .get('')

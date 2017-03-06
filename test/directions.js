@@ -5,6 +5,8 @@ var app = require ('../index'),
 chai.use(require('chai-json-schema'))
 
 describe('The direction getter', function(){
+  this.timeout(3000)
+  this.slow(2000)
   it('responds to queries without start and end addresses with 400', function(done) {
     supertest.get('/directions')
     .expect(400)
