@@ -14,7 +14,17 @@ app.get('/favicon.ico', function(req, res) {
 
 // Internal API endpoint for finding bikeshare locations
 var stations = require('./app/stations.js')
-app.use('/stations', stations)
+app.use('/stations', function(req, res){
+  debugger
+  stations(req.query.addr, req.query.minBikes || 0, req.query.minDocks || 0, function(err, results) {
+    debugger
+    if (err) {
+      res.status(err.code).send(err.text)
+    } else {}
+      res.send(results)
+    }
+  )
+})
 
 // Endpoint for calculating directions
 var directions = require('./app/assembleDirections.js')

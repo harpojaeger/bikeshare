@@ -1,8 +1,6 @@
-var express = require('express')
 var request = require('request')
 var async = require('async')
 var xml = require('xml2js')
-var router = express.Router()
 var geocode = require('./geocode')
 var geolib = require('geolib')
 var GoogleMapsAPIKey = process.env.GoogleMapsAPIKey
@@ -10,12 +8,12 @@ var googleMapsClient = require('@google/maps').createClient({
   key: GoogleMapsAPIKey
 });
 
-router.get('/', function(req, res, next) {
+var findClosestStations =  function(addr, minBikes, minDocks, theFinalCB) {
   async.waterfall([
     // Check to make sure an address was provided.
     function(cb){
-      if(req.query.addr) {
-        cb(null, req.query.addr)
+      if(addr) {
+        cb(null, addr)
       } else {
         cb({
           text: 'No address provided.',
@@ -28,7 +26,7 @@ router.get('/', function(req, res, next) {
 
     // Store the geocoded address data in a local.
     function(geocoded, cb) {
-      res.locals.addressData = geocoded
+      addressData = geocoded
       cb(null)
     },
     // Fetch current bikeshare data
@@ -67,8 +65,8 @@ router.get('/', function(req, res, next) {
         var retval = station
         // Retrieve lat and long for the submitted address.
         // The different naming conventions (lat/long vs. lat/lng) come from geolib and GMaps and are preserved for simplicity.
-        var addressLat = res.locals.addressData.geometry.location.lat
-        var addressLng = res.locals.addressData.geometry.location.lng
+        var addressLat = addressData.geometry.location.lat
+        var addressLng = addressData.geometry.location.lng
         // Do the distance calculation
         var distance = geolib.getDistance(
           {
@@ -114,9 +112,7 @@ router.get('/', function(req, res, next) {
         return 0
       }
       stations.sort(compareDistances)
-      // What's the minimum number of bikes/docks needed?  This is so the /stations endpoint can be used to determine both origin and destination stations (assuming that walking directions are completely reversible).
-      var minBikes = req.query.minBikes || 0
-      var minDocks = req.query.minDocks || 0
+      // Filter by minimum number of bikes and docks needed.
       async.filter(stations,
         function(station, filterCB) {
           filterCB(null, ((parseInt(station.nbBikes) >= minBikes) && (parseInt(station.nbEmptyDocks) >= minDocks)))
@@ -137,7 +133,7 @@ router.get('/', function(req, res, next) {
       googleMapsClient.distanceMatrix({
         mode: 'walking',
         origins: [
-          req.query.addr
+          addr
         ],
         destinations: nearbyStationCoords
       },
@@ -166,28 +162,15 @@ router.get('/', function(req, res, next) {
   ],
     function(err, results) {
       if(err) {
-        res.status(err.code || 500).send(err.text)
+        theFinalCB({
+          text: err.err,
+          code: err.code || 500
+        })
       } else {
-        var stationList = '<ol>\n'
-        async.each(results,
-          function(station, cb) {
-            stationList += "<li>" + station.name + ': ' + station.nbBikes + ' bikes, ' + station.nbEmptyDocks + ' docks (' + station.walkingDirections.duration.text + '/' + station.walkingDirections.distance.text + ').</li>\n'
-            cb(null)
-          },
-          function(err){
-            if (err) {
-              res.send(err)
-            } else {
-              stationList +="</ol>"
-              res.send(results)
-            }
-          }
-        )
+        theFinalCB(null,results)
       }
     }
   )
-})
+}
 
-
-
-module.exports = router
+module.exports = findClosestStations
