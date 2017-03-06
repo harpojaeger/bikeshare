@@ -3,16 +3,23 @@ var googleMapsClient = require('@google/maps').createClient({
   key: GoogleMapsAPIKey
 });
 
-var geocoder = function(queryAddr, cb) {
-  googleMapsClient.geocode({
-    address: queryAddr
-  }, function(err, response){
-    if(!err && response.json.status=='OK') {
-      cb(null, response.json.results[0])
+var directions = function(originAddr, destinationAddr, mode, cb) {
+  debugger
+  googleMapsClient.directions({
+    origin: originAddr,
+    destination: destinationAddr,
+    mode: mode
+  }, function(err, response) {
+    if(!err && response.json.status == 'OK') {
+      debugger
+      cb(null, response)
     } else {
-      // Return slightly more descriptive status codes based on what we get back from the Google Maps API
       var possibleCodes = {
+        // NOT_FOUND means one of the pts couldn't be geocoded – it's not really a 404
+        'NOT_FOUND' : 400,
         'ZERO_RESULTS' : 400,
+        'MAX_WAYPOINTS_EXCEEDED' : 413,
+        'MAX_ROUTE_LENGTH_EXCEEDED' : 413,
         'INVALID_REQUEST' : 400,
         'OVER_QUERY_LIMIT' : 429,
         'REQUEST_DENIED' : 403,
@@ -27,4 +34,4 @@ var geocoder = function(queryAddr, cb) {
   })
 }
 
-module.exports = geocoder
+module.exports = directions

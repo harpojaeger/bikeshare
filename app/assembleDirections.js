@@ -8,6 +8,7 @@ var googleMapsClient = require('@google/maps').createClient({
   key: GoogleMapsAPIKey
 });
 var geocode = require('./geocode')
+var getDirections = require('./getDirections')
 
 router.get('/', function(req, res, next){
   async.waterfall([
@@ -23,18 +24,23 @@ router.get('/', function(req, res, next){
     },
     // Try geocoding the origin address
     geocode,
+    // Store the geocoded origin data in a local.
     function(geocoded, cb) {
-      debugger
       res.locals.addressData = { 'origin' : geocoded}
-      // Call the geocode function with the destination addr
+      // Call the geocode function again with the destination addr
       cb(null, req.query.destinationAddr)
     },
     // Try geocoding the destination address
     geocode,
     function(geocoded, cb) {
+      // Store the geocoded destination data in a local
       res.locals.addressData['destination'] = geocoded
-      cb(null, res.locals.addressData)
-    }
+      // Set up a local to store all the direction info, per the schema in /test/directions.js
+      res.locals.allDirections = {}
+      // Determine the first bikeshare station
+      cb(null, res.locals.addressData.origin.formatted_address, res.locals.addressData.destination.formatted_address, 'walking')
+    },
+    getDirections
   ],
 
   // Final CB function to handle all errors and the ultimate results.
@@ -42,6 +48,7 @@ router.get('/', function(req, res, next){
     if(err) {
         res.status(err.code || 500).send(err.text)
     } else {
+      debugger
       res.send(results)
     }
   })
