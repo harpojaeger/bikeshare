@@ -27,14 +27,23 @@ router.get('/', function(req, res, next) {
       googleMapsClient.geocode({
         address: queryAddr
       }, function(err, response){
-        if(!err) {
+        debugger
+        if(!err && response.json.status=='OK') {
           // Store the geocoded address data in a local variable
           res.locals.addressData = response.json.results[0]
           cb(null)
         } else {
+          // Return slightly more descriptive status codes based on what we get back from the Google Maps API
+          var possibleCodes = {
+            'ZERO_RESULTS' : 400,
+            'INVALID_REQUEST' : 400,
+            'OVER_QUERY_LIMIT' : 429,
+            'REQUEST_DENIED' : 403,
+            'UNKNOWN_ERROR' : 500,
+          }
           cb({
-            text: 'Error geocoding address: ' + err,
-            code: 500
+            text: 'Error geocoding address: ' + err + ' ' + response.json.status,
+            code: possibleCodes[response.json.status]
           })
         }
       })

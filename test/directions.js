@@ -11,14 +11,13 @@ describe('The direction getter', function(){
     .end(done)
   })
 
-  it('responds to queries with unresolvable addresses with 500', function(done) {
-    this.timeout(10000)
+  it('responds to queries with unresolvable addresses with 400', function(done) {
     supertest.get('/directions')
     .query({
       originAddr: '1400 Shepherd St. NW, Washington DC',
       destinationAddr: 'Lorem ipsum dolor sit amet'
     })
-    .expect(500)
+    .expect(400, 'Error geocoding address: null ZERO_RESULTS')
     .end(done)
   })
 
