@@ -3,11 +3,12 @@ var request = require('request')
 var async = require('async')
 var xml = require('xml2js')
 var router = express.Router()
+var geocode = require('./geocode')
+var geolib = require('geolib')
 var GoogleMapsAPIKey = process.env.GoogleMapsAPIKey
 var googleMapsClient = require('@google/maps').createClient({
   key: GoogleMapsAPIKey
 });
-var geolib = require('geolib')
 
 router.get('/', function(req, res, next) {
   async.waterfall([
@@ -23,30 +24,11 @@ router.get('/', function(req, res, next) {
       }
     },
     // Geocode the address and throw an error if it doesn't work
-    function(queryAddr, cb) {
-      googleMapsClient.geocode({
-        address: queryAddr
-      }, function(err, response){
-        debugger
-        if(!err && response.json.status=='OK') {
-          // Store the geocoded address data in a local variable
-          res.locals.addressData = response.json.results[0]
-          cb(null)
-        } else {
-          // Return slightly more descriptive status codes based on what we get back from the Google Maps API
-          var possibleCodes = {
-            'ZERO_RESULTS' : 400,
-            'INVALID_REQUEST' : 400,
-            'OVER_QUERY_LIMIT' : 429,
-            'REQUEST_DENIED' : 403,
-            'UNKNOWN_ERROR' : 500,
-          }
-          cb({
-            text: 'Error geocoding address: ' + err + ' ' + response.json.status,
-            code: possibleCodes[response.json.status]
-          })
-        }
-      })
+    geocode,
+
+    function(geocoded, cb) {
+      res.locals.addressData = geocoded
+      cb(null)
     },
     // Fetch current bikeshare data
     function(cb){
