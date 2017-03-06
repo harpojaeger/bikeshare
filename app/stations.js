@@ -9,6 +9,7 @@ var googleMapsClient = require('@google/maps').createClient({
 });
 
 var findClosestStations =  function(addr, minBikes, minDocks, theFinalCB) {
+  var addressData
   async.waterfall([
     // Check to make sure an address was provided.
     function(cb){
@@ -24,8 +25,9 @@ var findClosestStations =  function(addr, minBikes, minDocks, theFinalCB) {
     // Geocode the address and throw an error if it doesn't work
     geocode,
 
-    // Store the geocoded address data in a local.
+
     function(geocoded, cb) {
+      // Store the geocoded address data.
       addressData = geocoded
       cb(null)
     },
