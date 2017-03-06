@@ -14,4 +14,10 @@ describe('HTTP server', function() {
     .expect(404)
     .end(done)
   })
+
+  it('responds with 400 if no address is provided at /stations', function(done) {
+    supertest.get('/stations')
+    .expect(400)
+    .end(done)
+  })
 })
