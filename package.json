@@ -10,7 +10,6 @@
     "dotenv": "^4.0.0",
     "express": "^4.14.1",
     "geolib": "^2.0.22",
-    "jasmine-node": "^1.14.5",
     "request": "^2.79.0",
     "xml2js": "^0.4.17"
   },
