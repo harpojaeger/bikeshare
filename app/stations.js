@@ -26,6 +26,7 @@ router.get('/', function(req, res, next) {
     // Geocode the address and throw an error if it doesn't work
     geocode,
 
+    // Store the geocoded address data in a local.
     function(geocoded, cb) {
       res.locals.addressData = geocoded
       cb(null)

@@ -11,7 +11,17 @@ describe('The direction getter', function(){
     .end(done)
   })
 
-  it('responds to queries with unresolvable addresses with 400', function(done) {
+  it('responds to queries with unresolvable origin addresses with 400', function(done) {
+    supertest.get('/directions')
+    .query({
+      originAddr: 'Lorem ipsum dolor sit amet',
+      destinationAddr: '1100 K St. NW, Washington DC'
+    })
+    .expect(400, 'Error geocoding address: null ZERO_RESULTS')
+    .end(done)
+  })
+
+  it('responds to queries with unresolvable destination addresses with 400', function(done) {
     supertest.get('/directions')
     .query({
       originAddr: '1400 Shepherd St. NW, Washington DC',
@@ -20,9 +30,6 @@ describe('The direction getter', function(){
     .expect(400, 'Error geocoding address: null ZERO_RESULTS')
     .end(done)
   })
-
-  // This is going to encompass rewriting the error handlers in /app/directions.js to better react to specific Google Maps API status codes.
-  it('responds with ZERO_RESULTS for nonexistent addresses')
 
   it('responds with JSON for all directions', function(done) {
     // The JSON schema our directions must follow to be valid

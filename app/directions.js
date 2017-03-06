@@ -7,12 +7,13 @@ var GoogleMapsAPIKey = process.env.GoogleMapsAPIKey
 var googleMapsClient = require('@google/maps').createClient({
   key: GoogleMapsAPIKey
 });
+var geocode = require('./geocode')
 
 router.get('/', function(req, res, next){
   async.waterfall([
     function(cb){
       if(req.query.originAddr && req.query.destinationAddr) {
-        cb(null)
+        cb(null, req.query.originAddr)
       } else {
         cb({
           code: 400,
@@ -21,44 +22,18 @@ router.get('/', function(req, res, next){
       }
     },
     // Try geocoding the origin address
-    function(cb) {
-      googleMapsClient.geocode({
-        address: req.query.originAddr
-      }, function(err, response){
-        if(!err && response.json.results.length) {
-          debugger
-          // Store the geocoded address data in a local variable
-          res.locals.addressData = { 'origin' : response.json.results[0] }
-          debugger
-          cb(null)
-        } else {
-          debugger
-          cb({
-            text: 'Error geocoding origin address: ' + err,
-            code: 500
-          })
-        }
-      })
+    geocode,
+    function(geocoded, cb) {
+      debugger
+      res.locals.addressData = { 'origin' : geocoded}
+      // Call the geocode function with the destination addr
+      cb(null, req.query.destinationAddr)
     },
     // Try geocoding the destination address
-    function(cb) {
-      debugger
-      googleMapsClient.geocode({
-        address: req.query.destinationAddr
-      }, function(err, response){
-        if(!err && response.length ) {
-          debugger
-          // Store the geocoded address data in a local variable
-          res.locals.addressData.destination = response.json.results[0]
-          cb(null)
-        } else {
-          debugger
-          cb({
-            text: 'Error geocoding destination address: ' + err,
-            code: 500
-          })
-        }
-      })
+    geocode,
+    function(geocoded, cb) {
+      res.locals.addressData['destination'] = geocoded
+      cb(null, res.locals.addressData)
     }
   ],
 
