@@ -9,12 +9,17 @@ var googleMapsClient = require('@google/maps').createClient({
 });
 var geocode = require('./geocode')
 var getDirections = require('./getDirections')
+var findClosestStations = require('./stations')
 
-router.get('/', function(req, res, next){
+var assembleDirections = function(originAddr, destinationAddr, theFinalCB){
+  // Variable to store all the address data.
+  var addressData
+  // Variable to store all the direction info, per the schema in /test/directions.js
+  var allDirections = {}
   async.waterfall([
     function(cb){
-      if(req.query.originAddr && req.query.destinationAddr) {
-        cb(null, req.query.originAddr)
+      if(originAddr && destinationAddr) {
+        cb(null, originAddr)
       } else {
         cb({
           code: 400,
@@ -24,21 +29,19 @@ router.get('/', function(req, res, next){
     },
     // Try geocoding the origin address
     geocode,
-    // Store the geocoded origin data in a local.
+    // Store the geocoded origin
     function(geocoded, cb) {
-      res.locals.addressData = { 'origin' : geocoded}
+      addressData = { 'origin' : geocoded}
       // Call the geocode function again with the destination addr
-      cb(null, req.query.destinationAddr)
+      cb(null, destinationAddr)
     },
     // Try geocoding the destination address
     geocode,
     function(geocoded, cb) {
-      // Store the geocoded destination data in a local
-      res.locals.addressData['destination'] = geocoded
-      // Set up a local to store all the direction info, per the schema in /test/directions.js
-      res.locals.allDirections = {}
+      // Store the geocoded destination
+      addressData['destination'] = geocoded
       // Determine the first bikeshare station
-      cb(null, res.locals.addressData.origin.formatted_address, res.locals.addressData.destination.formatted_address, 'walking')
+      cb(null, addressData.origin.formatted_address, addressData.destination.formatted_address, 'walking')
     },
     getDirections
   ],
@@ -46,12 +49,15 @@ router.get('/', function(req, res, next){
   // Final CB function to handle all errors and the ultimate results.
   function(err, results) {
     if(err) {
-        res.status(err.code || 500).send(err.text)
+      theFinalCB({
+        text:err.text,
+        code: err.code || 500
+      })
     } else {
       debugger
-      res.send(results)
+      theFinalCB(null, results)
     }
   })
-})
+}
 
-module.exports = router
+module.exports = assembleDirections

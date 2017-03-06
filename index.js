@@ -27,8 +27,18 @@ app.use('/stations', function(req, res){
 })
 
 // Endpoint for calculating directions
-var directions = require('./app/assembleDirections.js')
-app.use('/directions', directions)
+var assembleDirections = require('./app/assembleDirections.js')
+app.use('/directions', function(req, res) {
+  debugger
+  assembleDirections(req.query.originAddr, req.query.destinationAddr, function(err, results) {
+    debugger
+    if (err) {
+      res.status(err.code).send(err.text)
+    } else {
+      res.send(results)
+    }
+  })
+})
 
 app.get('/', function(req, res) {
   res.send('Hello world.')
