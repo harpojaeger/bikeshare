@@ -17,7 +17,7 @@ describe('The direction getter', function(){
       originAddr: '1400 Shepherd St. NW, Washington DC',
       destinationAddr: 'Lorem ipsum dolor sit amet'
     })
-    .expect(400)
+    .expect(500)
     .end(done)
   })
 
