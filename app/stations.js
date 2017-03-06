@@ -70,7 +70,6 @@ router.get('/', function(req, res, next) {
     // Do a straight-line distance calculation to each station to create a subset of stations to actually get walking directions for.
     function(parsedXML, waterfallCB) {
       var stationList = parsedXML.stations.station
-      console.log('Ready to process', stationList.length, 'stations.')
       // I'm using 'mapCB' to distinguish the callback function inside async.map from waterfallCB, the callback in the top-level async.waterfall function.
       async.map(stationList, function(station, mapCB) {
         var retval = station
@@ -131,7 +130,6 @@ router.get('/', function(req, res, next) {
           filterCB(null, ((parseInt(station.nbBikes) >= minBikes) && (parseInt(station.nbEmptyDocks) >= minDocks)))
         },
         function(err, results) {
-          console.log('Found', results.length, 'stations matching criteria.')
           cb(null, results)
         }
       )
@@ -176,7 +174,6 @@ router.get('/', function(req, res, next) {
   ],
     function(err, results) {
       if(err) {
-        console.log('Got an error')
         res.status(err.code || 500).send(err.text)
       } else {
         var stationList = '<ol>\n'

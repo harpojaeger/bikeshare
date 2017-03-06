@@ -5,6 +5,7 @@ var supertest = require('supertest')(app)
 describe('The closest bikeshare station to', function() {
   describe('the shtetl', function() {
     it('is 14th & Upshur', function(done){
+      this.timeout(3000);
       supertest.get('/stations')
       .query({ addr: '1400 Shepherd St. NW, Washington DC' })
       .expect(200, function(err, res){
@@ -16,6 +17,7 @@ describe('The closest bikeshare station to', function() {
 
   describe('Merdian Pint', function(){
     it('is 11th & Kenyon', function(done) {
+      this.timeout(3000);
       supertest.get('/stations')
       .query({ addr: '3400 11th St NW, Washington, DC' })
       .expect(200, function(err, res){
