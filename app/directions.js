@@ -19,6 +19,46 @@ router.get('/', function(req, res, next){
           text: 'Provide both origin and destination addresses.'
         })
       }
+    },
+    // Try geocoding the origin address
+    function(cb) {
+      googleMapsClient.geocode({
+        address: req.query.originAddr
+      }, function(err, response){
+        if(!err && response.json.results.length) {
+          debugger
+          // Store the geocoded address data in a local variable
+          res.locals.addressData = { 'origin' : response.json.results[0] }
+          debugger
+          cb(null)
+        } else {
+          debugger
+          cb({
+            text: 'Error geocoding origin address: ' + err,
+            code: 500
+          })
+        }
+      })
+    },
+    // Try geocoding the destination address
+    function(cb) {
+      debugger
+      googleMapsClient.geocode({
+        address: req.query.destinationAddr
+      }, function(err, response){
+        if(!err && response.length ) {
+          debugger
+          // Store the geocoded address data in a local variable
+          res.locals.addressData.destination = response.json.results[0]
+          cb(null)
+        } else {
+          debugger
+          cb({
+            text: 'Error geocoding destination address: ' + err,
+            code: 500
+          })
+        }
+      })
     }
   ],
 

@@ -11,7 +11,8 @@ describe('The direction getter', function(){
     .end(done)
   })
 
-  it('responds to queries with unresolvable addresses with 400', function(done) {
+  it('responds to queries with unresolvable addresses with 500', function(done) {
+    this.timeout(10000)
     supertest.get('/directions')
     .query({
       originAddr: '1400 Shepherd St. NW, Washington DC',
@@ -21,8 +22,10 @@ describe('The direction getter', function(){
     .end(done)
   })
 
-  it('responds with JSON for all directions', function(done) {
+  // This is going to encompass rewriting the error handlers in /app/directions.js to better react to specific Google Maps API status codes.
+  it('responds with ZERO_RESULTS for nonexistent addresses')
 
+  it('responds with JSON for all directions', function(done) {
     // The JSON schema our directions must follow to be valid
     var directionsSchema = {
       title: 'walking & biking directions schema',
