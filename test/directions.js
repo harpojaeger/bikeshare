@@ -9,7 +9,7 @@ describe('The direction getter', function(){
   this.slow(2000)
   it('responds to queries without start and end addresses with 400', function(done) {
     supertest.get('/directions')
-    .expect(400)
+    .expect(400, 'Provide both origin and destination addresses.')
     .end(done)
   })
 
@@ -19,7 +19,7 @@ describe('The direction getter', function(){
       originAddr: 'Lorem ipsum dolor sit amet',
       destinationAddr: '1100 K St. NW, Washington DC'
     })
-    .expect(400, 'Error geocoding address: null ZERO_RESULTS')
+    .expect(400, 'Geocoding error: ZERO_RESULTS')
     .end(done)
   })
 
@@ -29,7 +29,7 @@ describe('The direction getter', function(){
       originAddr: '1400 Shepherd St. NW, Washington DC',
       destinationAddr: 'Lorem ipsum dolor sit amet'
     })
-    .expect(400, 'Error geocoding address: null ZERO_RESULTS')
+    .expect(400, 'Geocoding error: ZERO_RESULTS')
     .end(done)
   })
 

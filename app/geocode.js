@@ -11,10 +11,15 @@ var geocoder = nodeGeocoder({
 
 var newGeocoder = function(addresses, cb) {
   geocoder.batchGeocode(addresses)
-  .then(function(res){
-    cb(null, res)
+  .then(function(results){
+    results.forEach(function(result){
+      debugger
+      if(result.value.raw.status != 'OK') throw result.value.raw.status
+    })
+    cb(null, results)
   })
   .catch(function(err) {
+    debugger
     // Return slightly more descriptive status codes based on what we get back from the Google Maps API
     var possibleCodes = {
       'ZERO_RESULTS' : 400,
@@ -26,8 +31,8 @@ var newGeocoder = function(addresses, cb) {
     console.error(err)
     cb({
       // fix these
-      text: 'Error geocoding address: ' + err + ' ' ,
-      code: possibleCodes[err]
+      text: 'Geocoding error: ' + err,
+      code: possibleCodes[err] || err
     })
   })
 }
