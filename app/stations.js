@@ -8,30 +8,10 @@ var googleMapsClient = require('@google/maps').createClient({
   key: GoogleMapsAPIKey
 });
 
-var findClosestStations =  function(addr, minBikes, minDocks, theFinalCB) {
+var findClosestStations =  function(lat, long, minBikes, minDocks, theFinalCB) {
   debugger
   var addressData
   async.waterfall([
-    // Check to make sure an address was provided.
-    function(cb){
-      if(addr) {
-        cb(null, addr)
-      } else {
-        cb({
-          text: 'No address provided.',
-          code: 400
-        })
-      }
-    },
-    // Geocode the address and throw an error if it doesn't work
-    geocode,
-
-
-    function(geocoded, cb) {
-      // Store the geocoded address data.
-      addressData = geocoded
-      cb(null)
-    },
     // Fetch current bikeshare data
     function(cb){
       request('http://feeds.capitalbikeshare.com/stations/stations.xml', function(error, response,body) {
@@ -66,15 +46,11 @@ var findClosestStations =  function(addr, minBikes, minDocks, theFinalCB) {
       // I'm using 'mapCB' to distinguish the callback function inside async.map from waterfallCB, the callback in the top-level async.waterfall function.
       async.map(stationList, function(station, mapCB) {
         var retval = station
-        // Retrieve lat and long for the submitted address.
-        // The different naming conventions (lat/long vs. lat/lng) come from geolib and GMaps and are preserved for simplicity.
-        var addressLat = addressData.geometry.location.lat
-        var addressLng = addressData.geometry.location.lng
         // Do the distance calculation
         var distance = geolib.getDistance(
           {
-            latitude: addressLat,
-            longitude: addressLng
+            latitude: lat,
+            longitude: long
           },
           {
             latitude: station.lat,
@@ -133,10 +109,11 @@ var findClosestStations =  function(addr, minBikes, minDocks, theFinalCB) {
         nearbyStationCoords.push(station.lat + ',' + station.long)
       })
       // Compute walking distance/time for all stations in the subset.
+      debugger
       googleMapsClient.distanceMatrix({
         mode: 'walking',
         origins: [
-          addr
+          lat + ',' + long
         ],
         destinations: nearbyStationCoords
       },

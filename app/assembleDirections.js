@@ -33,7 +33,7 @@ var assembleDirections = function(originAddr, destinationAddr, theFinalCB){
   async.waterfall([
     function(cb){
       if(originAddr && destinationAddr) {
-        cb(null, originAddr)
+        cb(null, [originAddr, destinationAddr])
       } else {
         cb({
           code: 400,
@@ -41,41 +41,31 @@ var assembleDirections = function(originAddr, destinationAddr, theFinalCB){
         })
       }
     },
-    // Try geocoding the origin address
-    geocode,
-    // Store the geocoded origin
+    geocode.new,
+    // Store the geocoded data
     function(geocoded, cb) {
-      addressData.origin = geocoded
-      // Call the geocode function again with the destination addr
-      cb(null, destinationAddr)
-    },
-    // Try geocoding the destination address
-    geocode,
-    function(geocoded, cb) {
-      // Store the geocoded destination
-      addressData.destination = geocoded
-      debugger
+      addressData.origin = geocoded[0].value[0]
+      addressData.destination = geocoded[1].value[0]
       // Determine the origin bikeshare station
-      cb(null, addressData.origin.formatted_address, 1, 0)
+      cb(null, addressData.origin.latitude, addressData.origin.longitude, 1, 0)
     },
     findClosestStations,
     function(originStationList, cb) {
       // Store the origin bikeshare station
       stationData.origin = originStationList[0]
-      debugger
       // Get walking directions from the origin to the origin bikeshare station
       cb(null,
-        addressData.origin.formatted_address,
+        addressData.origin.formattedAddress,
         stationData.origin.lat + ',' + stationData.origin.long,
         'walking')
     },
     getDirections,
     function(originDirections, cb) {
-      debugger
       // Store the origin walking directions
       allDirections.walking.fromOrigin = originDirections
       // Determine the destination bikeshare station
-      cb(null, addressData.destination.formatted_address, 0, 1)
+      debugger
+      cb(null, addressData.destination.latitude, addressData.destination.longitude, 0, 1)
     },
     findClosestStations,
     function(destinationStationList, cb) {
@@ -86,7 +76,7 @@ var assembleDirections = function(originAddr, destinationAddr, theFinalCB){
       // Get walking directions from the destination bikeshare station to the destination
       cb(null,
         stationData.destination.lat + ',' + stationData.destination.long,
-        addressData.destination.formatted_address,
+        addressData.destination.formattedAddress,
         'walking')
     },
     getDirections,

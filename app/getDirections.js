@@ -4,6 +4,7 @@ var googleMapsClient = require('@google/maps').createClient({
 });
 
 var directions = function(originAddr, destinationAddr, mode, cb) {
+  debugger
   googleMapsClient.directions({
     origin: originAddr,
     destination: destinationAddr,
