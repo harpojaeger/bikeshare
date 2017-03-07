@@ -2,13 +2,7 @@ var assert = require('assert')
 var xml = require('xml2js')
 var app = require ('../index')
 var supertest = require('supertest')('http://feeds.capitalbikeshare.com/stations/stations.xml')
-var util = require('util')
 describe('Capital Bikeshare', function() {
-  afterEach(function(){
-    if (this.currentTest.state == 'failed') {
-      console.log("    Response body: " + util.inspect(response.body,{depth: null, colors: true}) + "\n");
-    }
-  })
 
   describe('XML', function() {
     this.timeout(5000)

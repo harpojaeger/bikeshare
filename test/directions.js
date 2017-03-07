@@ -34,6 +34,8 @@ describe('The direction getter', function(){
   })
 
   it('responds with JSON for all directions', function(done) {
+    this.timeout(5000)
+    this.slow(3000)
     // The JSON schema our directions must follow to be valid
     var directionsSchema = {
       title: 'walking & biking directions schema',
@@ -55,11 +57,12 @@ describe('The direction getter', function(){
     }
     supertest.get('/directions')
     .query({
-      startAddr: '1400 Randolph St. NW, Washington DC',
-      endAddr: '1100 K St. NW, Washington DC'
+      originAddr: '1400 Randolph St. NW, Washington DC',
+      destinationAddr: '1100 K St. NW, Washington DC'
     })
     .expect(200, function(err, res) {
       expect(JSON.parse(res.text)).to.be.jsonSchema(directionsSchema)
+      done()
     })
   })
 })
