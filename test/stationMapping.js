@@ -8,7 +8,10 @@ describe('The closest bikeshare station to', function() {
   describe('the shtetl', function() {
     it('is 14th & Upshur', function(done){
       supertest.get('/stations')
-      .query({ addr: '1400 Shepherd St. NW, Washington DC' })
+      .query({
+        lat: 38.9397491,
+        long: -77.0327219
+      })
       .expect(200, function(err, res){
         assert.equal(parseInt(JSON.parse(res.text)[0].id),217)
         done()
@@ -19,7 +22,10 @@ describe('The closest bikeshare station to', function() {
   describe('Merdian Pint', function(){
     it('is 11th & Kenyon', function(done) {
       supertest.get('/stations')
-      .query({ addr: '3400 11th St NW, Washington, DC' })
+      .query({
+        lat: 38.9319963,
+        long: -77.0285086
+      })
       .expect(200, function(err, res){
         assert.equal(parseInt(JSON.parse(res.text)[0].id),16)
         done()
