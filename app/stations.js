@@ -12,6 +12,16 @@ var findClosestStations =  function(lat, long, minBikes, minDocks, theFinalCB) {
   debugger
   var addressData
   async.waterfall([
+    function(cb) {
+      if(lat && long) {
+        cb(null)
+      } else {
+        cb({
+          text: 'Provide lat and long.',
+          code: 400
+        })
+      }
+    },
     // Fetch current bikeshare data
     function(cb){
       request('http://feeds.capitalbikeshare.com/stations/stations.xml', function(error, response,body) {
@@ -94,7 +104,7 @@ var findClosestStations =  function(lat, long, minBikes, minDocks, theFinalCB) {
       // Filter by minimum number of bikes and docks needed.
       async.filter(stations,
         function(station, filterCB) {
-          filterCB(null, ((parseInt(station.nbBikes) >= minBikes) && (parseInt(station.nbEmptyDocks) >= minDocks)))
+          filterCB(null, ( (parseInt(station.nbBikes) >= minBikes) && (parseInt(station.nbEmptyDocks) >= minDocks) ) )
         },
         function(err, results) {
           cb(null, results)
