@@ -9,6 +9,7 @@ var googleMapsClient = require('@google/maps').createClient({
 });
 
 var findClosestStations =  function(addr, minBikes, minDocks, theFinalCB) {
+  debugger
   var addressData
   async.waterfall([
     // Check to make sure an address was provided.

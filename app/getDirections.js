@@ -4,7 +4,6 @@ var googleMapsClient = require('@google/maps').createClient({
 });
 
 var directions = function(originAddr, destinationAddr, mode, cb) {
-  debugger
   googleMapsClient.directions({
     origin: originAddr,
     destination: destinationAddr,
@@ -12,7 +11,7 @@ var directions = function(originAddr, destinationAddr, mode, cb) {
   }, function(err, response) {
     if(!err && response.json.status == 'OK') {
       debugger
-      cb(null, response)
+      cb(null, response.json)
     } else {
       var possibleCodes = {
         // NOT_FOUND means one of the pts couldn't be geocoded – it's not really a 404
