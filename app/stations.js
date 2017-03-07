@@ -1,4 +1,6 @@
 var request = require('request')
+var cachedRequest = require('cached-request')(request)
+cachedRequest.setCacheDirectory('/tmp/cache')
 var async = require('async')
 var xml = require('xml2js')
 var geocode = require('./geocode')
@@ -24,7 +26,11 @@ var findClosestStations =  function(lat, long, minBikes, minDocks, theFinalCB) {
     },
     // Fetch current bikeshare data
     function(cb){
-      request('http://feeds.capitalbikeshare.com/stations/stations.xml', function(error, response,body) {
+      cachedRequest({
+        ttl: 30000,
+        url: 'http://feeds.capitalbikeshare.com/stations/stations.xml'
+      },
+      function(error, response,body) {
         if (!error && response.statusCode == 200) {
           cb(null, body)
         } else {
