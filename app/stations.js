@@ -125,15 +125,15 @@ var findClosestStations =  function(lat, long, minBikes, minDocks, theFinalCB) {
         nearbyStationCoords.push(station.lat + ',' + station.long)
       })
       // Compute walking distance/time for all stations in the subset.
+      var originCoords = [lat + ',' + long]
       debugger
       googleMapsClient.distanceMatrix({
         mode: 'walking',
-        origins: [
-          lat + ',' + long
-        ],
+        origins: originCoords,
         destinations: nearbyStationCoords
       },
       function(err, response){
+        debugger
         if (err) {
           cb(err)
         } else {
